@@ -1,0 +1,87 @@
+
+
+public class Main {
+
+
+	public static void main(String[] args) throws Exception{
+		
+		mainProcess();
+	}
+	
+	public static char toBRE (int ruleID, String ruleQuery, String currRelatives) throws Exception{
+		//Send this parameters to BRE and get result("T", "F", "X").
+		return 'X';
+	}
+	
+	private static void mainProcess() throws Exception{
+		
+		
+		 
+		  boolean flag = true;
+		  
+			while ( flag ){
+			
+				Orchestration newOrch = new Orchestration();
+				OrchestrationDAO tmpODAO = new OrchestrationDAO() ;
+				
+				int currJobID = -1;//end node in orchestration and default job id.
+				
+				while (currJobID == -1){
+					
+					newOrch = tmpODAO.getOrchestration();//get avaible orchestration
+					currJobID = newOrch.getStartJobID();//set start job id
+					
+					while (currJobID != -1) {//while next job != end
+						
+						Job newJob = new Job();//current job.
+						JobDAO tmpJDAO = new JobDAO();
+						
+						newJob = tmpJDAO.getJob(currJobID);
+			
+						
+						Rule newRule = new Rule();
+						RuleDAO tmpRDAO = new RuleDAO();
+						
+						newRule = tmpRDAO.getRule(newJob.getRuleId());
+						
+						char result = toBRE( newRule.getId() , newRule.getQuery() , newRule.getRelativeResults() );
+						
+						if(result == 'T') {
+							
+							//Do the job
+							newJob = tmpJDAO.getJob(newRule.getYesEdge());
+							currJobID = newJob.getId();
+							newRule = tmpRDAO.getRule(newJob.getRuleId());
+							
+						}
+						
+						else if (result == 'F') {
+						
+							newJob = tmpJDAO.getJob(newRule.getNoEdge());
+							currJobID = newJob.getId();
+							newRule = tmpRDAO.getRule(newJob.getRuleId());
+							
+						}
+						
+						else {
+							
+							newOrch.setStatus(100);//response wait.
+							//newOrch.setNextYesEdge( newRule.getYesEdge() );
+							//newOrch.setNextNoEdge( newRule.getNoEdge() );
+							currJobID = -1;
+						}
+						
+						
+					}
+					
+					currJobID = -1;
+					
+				}
+				
+				
+				
+			}
+	
+	}
+	
+}
